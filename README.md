@@ -31,7 +31,7 @@ The shock is ranked against a pre-built historical distribution. A signal fires 
 | BAC / JPM | 479 | 55.3% | 1.37 | 1.63 | $153 |
 | V / MA | 418 | 63.4% | 4.08 | 5.85 | $35 |
 | PEP / KO | 214 | 59.3% | 1.04 | 0.77 | $64 |
-| **Combined** | **1,111** | **59.3%** | — | — | — |
+| **Combined** | **1,111** | **59.3%** | **3.28** | **4.76** | **$108** |
 
 Beta-adjusted shock percentile ranking. Logic verified against HTML dashboard using Yahoo Finance OHLCV data.
 
