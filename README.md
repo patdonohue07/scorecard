@@ -40,7 +40,7 @@ Beta-adjusted shock percentile ranking. Logic verified against HTML dashboard us
 ## How to Run
 
 **Signal Dashboard (manual)**
-Open `scorecard_v6.html` in any browser. Enter prev close and today's open for each pair at market open to generate signals.
+Open `Scorecard V6` in any browser. Enter prev close and today's open for each pair at market open to generate signals.
 
 **Automated Deployment (paper trading)**
 
