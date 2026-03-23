@@ -52,14 +52,14 @@ export ALPACA_API_KEY="your_key"
 export ALPACA_SECRET_KEY="your_secret"
 
 Run at 9:30 AM ET each trading day:
-python scorecard_deploy_v6.py
+python Scorecard Deploy Code
 
 Positions close automatically at the end of the day.
 
 ## Files
 
-- `scorecard_v6.html` — signal dashboard, run in browser each morning
-- `scorecard_deploy_v6.py` — automated deployment via Alpaca paper trading
+- `Scorecard V6` — signal dashboard, run in browser each morning
+- `Scorecard Deploy Code` — automated deployment via Alpaca paper trading
 
 ## Stack
 
