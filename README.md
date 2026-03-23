@@ -1,74 +1,130 @@
-# Scorecard
+[README.md](https://github.com/user-attachments/files/26171509/README.md)
+# QuantX
 
-Pairs trading signal dashboard tracking three equity pairs — BAC/JPM, V/MA, and PEP/KO.
+**Pairs trading signal dashboard for equity markets.**
 
-Each morning, the script calculates the beta-adjusted overnight gap shock for each pair, ranks it against a historical distribution, and fires a trade signal when the percentile hits the threshold. Entry at open, exit at close, dollar neutral.
+Built by a high school senior with two years of trading experience. QuantX generates intraday long/short signals using beta-adjusted overnight gap shocks, ranked against a historical distribution of 3 years of market data.
 
-> ⚠️ This project is for research and educational purposes only. It is not financial advice and should not be used to make real trading decisions.
+Live paper trading on Alpaca. Three pairs, dollar neutral, open-to-close.
 
-## Strategy
+---
 
-For each pair, the shock is calculated as:
+## How It Works
 
-shock = lead_gap - beta × target_gap
+At market open (9:30 AM ET), each stock in a pair has gapped up or down from the previous close. QuantX computes a *shock* — the lead stock's gap adjusted for how much the target stock moved, weighted by their beta relationship.
 
-where gap = (open / prev_close) - 1
+```
+shock = lead_gap − β × target_gap
+```
 
-The shock is ranked against a pre-built historical distribution. A signal fires when the percentile exceeds the upper threshold (short lead, long target) or falls below the lower threshold (long lead, short target).
+That shock is ranked against every opening shock over the past 3 years. If it hits the 75th percentile or above, the lead stock has opened unusually high relative to its pair — signal is to short the lead and long the target, betting on mean reversion by close.
+
+---
 
 ## Pairs
 
 | Pair | Beta | Threshold |
 |------|------|-----------|
-| BAC / JPM | 0.799 | 75 / 25 |
-| V / MA | 0.648 | 75 / 25 |
-| PEP / KO | 0.536 | 85 / 15 |
+| BAC / JPM | 0.799 | ≥75th / ≤25th |
+| V / MA | 0.648 | ≥75th / ≤25th |
+| PEP / KO | 0.536 | ≥85th / ≤15th |
+
+---
 
 ## Backtest Results
 
-3-year window: Jan 2023 – Mar 2026 | $1,000 per leg | Open-to-close | Dollar neutral
+**Jan 2023 – Mar 2026 · $1,000/leg · open-to-close · dollar neutral**
 
-| Pair | Trades | Win% | Sharpe | Sortino | Max DD |
-|------|--------|------|--------|---------|--------|
-| BAC / JPM | 479 | 55.3% | 1.37 | 1.63 | $153 |
-| V / MA | 418 | 63.4% | 4.08 | 5.85 | $35 |
-| PEP / KO | 214 | 59.3% | 1.04 | 0.77 | $64 |
+| Pair | Trades | Win Rate | Sharpe | Sortino | Max DD |
+|------|--------|----------|--------|---------|--------|
+| BAC/JPM | 479 | 55.3% | 1.37 | 1.63 | $153 |
+| V/MA | 418 | 63.4% | 4.08 | 5.85 | $35 |
+| PEP/KO | 214 | 59.3% | 1.04 | 0.77 | $64 |
 | **Combined** | **1,111** | **59.3%** | **3.28** | **4.76** | **$108** |
 
-Beta-adjusted shock percentile ranking. Logic verified against HTML dashboard using Yahoo Finance OHLCV data.
+Backtest logic verified against HTML scorecard dashboard. Results do not include transaction costs or slippage.
 
-## How to Run
+---
 
-**Signal Dashboard (manual)**
-Open `Scorecard V6` in any browser. Enter prev close and today's open for each pair at market open to generate signals.
+## App — QuantX UI
 
-**Automated Deployment (paper trading)**
+React dashboard with three tabs:
 
-Install dependencies:
-pip install alpaca-py
+- **Signals** — enter opening prices, get a real-time signal with live percentile bar
+- **Log** — persistent trade log with outcome tracking, P&L, and notes
+- **Research** — full backtest stats and methodology
 
-Set your Alpaca paper trading keys:
+**Files:**
+- `app/QuantX V1` — first React build
+- `app/QuantX V2` — current version (v7): pure black, electric blue, signal mark logo, trade log
+
+---
+
+## Backend
+
+**Files:**
+- `backend/Scorecard Deploy Code` — Alpaca paper trading deployment script. Run at 9:30 AM ET daily. Fetches prices, computes signals, places paper trades, writes `signals.json` for the frontend
+- `backend/Backtest Code` — full backtesting engine using Yahoo Finance OHLCV data
+
+**Setup:**
+
+```bash
+pip install alpaca-py yfinance pandas numpy
+```
+
+```bash
 export ALPACA_API_KEY="your_key"
 export ALPACA_SECRET_KEY="your_secret"
+export SIGNALS_OUTPUT_PATH="/path/to/quantx/public/signals.json"
+```
 
-Run at 9:30 AM ET each trading day:
-python Scorecard Deploy Code
+```bash
+python "Scorecard Deploy Code"
+```
 
-Positions close automatically at the end of the day.
+Automate with a cron job at 9:30 AM ET on weekdays:
 
-## Files
+```
+30 9 * * 1-5 python /path/to/scorecard_deploy.py
+```
 
-- `Scorecard V6` — signal dashboard, run in browser each morning
-- `Scorecard Deploy Code` — automated deployment via Alpaca paper trading
-- `Backtest Code` — full backtesting engine with threshold optimization and Sharpe/Sortino calculations
+---
 
-## Stack
+## Dashboard
 
-- Python / alpaca-py
-- Yahoo Finance for backtesting
-- Alpaca for paper trade execution
-- Signal logic verified against HTML dashboard
+`dashboard/Scorecard V6` — original HTML scorecard. Open in any browser, no dependencies. Enter prices manually and get signals with percentile rankings. The logic in this file is the source of truth that the Python backtest and React app were both verified against.
+
+---
+
+## Repo Structure
+
+```
+app/
+  QuantX V1          ← initial React build
+  QuantX V2          ← current build (v7)
+backend/
+  Scorecard Deploy Code   ← Alpaca deployment script
+  Backtest Code           ← backtesting engine
+dashboard/
+  Scorecard V6       ← original HTML dashboard
+README.md
+```
+
+---
 
 ## Status
 
-Paper trading — live deployment pending.
+- [x] Strategy research and pair selection
+- [x] 3-year backtest with Sharpe/Sortino/max drawdown
+- [x] HTML scorecard dashboard
+- [x] React app with signal generation
+- [x] Alpaca paper trading deployment script
+- [x] Persistent trade log with P&L tracking
+- [ ] Live price auto-population via Alpaca API
+- [ ] Vercel deployment
+- [ ] Cron job automation
+- [ ] Real-time P&L from paper account
+
+---
+
+*For research and educational purposes only. Not financial advice.*
