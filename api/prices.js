@@ -2,7 +2,7 @@
  * Quantile — /api/prices.js
  * Vercel serverless function
  *
- * Fetches prev close + today's open for all 6 tickers from Alpaca.
+ * Fetches prev close + today's open for all 10 tickers from Alpaca.
  * Called by the React app at load time.
  *
  * Environment variables (set in Vercel dashboard):
@@ -15,19 +15,25 @@
  *   time: "09:31",
  *   market: "open" | "closed",
  *   tickers: {
- *     BAC: { prev_close: 46.92, open: 47.06 },
+ *     V:   { prev_close: 340.12, open: 341.50 },
+ *     MA:  { prev_close: 520.44, open: 519.80 },
+ *     LOW: { prev_close: 230.11, open: 231.00 },
+ *     HD:  { prev_close: 380.55, open: 379.90 },
+ *     PG:  { prev_close: 163.20, open: 163.80 },
+ *     CL:  { prev_close: 94.30,  open: 94.10  },
+ *     MS:  { prev_close: 110.40, open: 111.00 },
+ *     GS:  { prev_close: 520.10, open: 521.30 },
+ *     BAC: { prev_close: 46.92,  open: 47.06  },
  *     JPM: { prev_close: 287.99, open: 287.89 },
- *     ...
  *   }
  * }
  */
 
-const TICKERS = ["BAC", "JPM", "V", "MA", "PEP", "KO"];
+const TICKERS = ["V", "MA", "LOW", "HD", "PG", "CL", "MS", "GS", "BAC", "JPM"];
 
 const BASE_URL = "https://data.alpaca.markets/v2";
 
 async function getPrevClose(ticker, apiKey, secretKey) {
-  // Get the most recent completed trading day's close
   const url = `${BASE_URL}/stocks/${ticker}/bars?timeframe=1Day&limit=2&adjustment=raw&feed=iex`;
 
   const res = await fetch(url, {
@@ -48,12 +54,10 @@ async function getPrevClose(ticker, apiKey, secretKey) {
     throw new Error(`No bars returned for ${ticker}`);
   }
 
-  // Most recent completed bar's close
   return bars[bars.length - 1].c;
 }
 
 async function getTodayOpen(ticker, apiKey, secretKey) {
-  // Get today's latest bar (which will have today's open)
   const url = `${BASE_URL}/stocks/${ticker}/bars/latest?feed=iex`;
 
   const res = await fetch(url, {
@@ -76,13 +80,12 @@ function isMarketOpen() {
   const et = new Date(
     now.toLocaleString("en-US", { timeZone: "America/New_York" })
   );
-  const day = et.getDay(); // 0=Sun, 6=Sat
+  const day = et.getDay();
   const mins = et.getHours() * 60 + et.getMinutes();
   return day >= 1 && day <= 5 && mins >= 570 && mins < 960;
 }
 
 export default async function handler(req, res) {
-  // CORS headers so the React app can call this
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET");
 
@@ -99,7 +102,6 @@ export default async function handler(req, res) {
   );
 
   try {
-    // Fetch prev close and today's open for all tickers in parallel
     const results = await Promise.all(
       TICKERS.map(async (ticker) => {
         const [prevClose, open] = await Promise.all([
@@ -110,7 +112,6 @@ export default async function handler(req, res) {
       })
     );
 
-    // Build response object
     const tickers = {};
     for (const { ticker, prevClose, open } of results) {
       tickers[ticker] = {
