@@ -186,6 +186,28 @@ function LiveBadge({ time }) {
   );
 }
 
+// ── HELPERS ────────────────────────────────────────────────────────────────────
+function CopyIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+    </svg>
+  );
+}
+
+function getNextMarketOpen(now) {
+  const d = now.getDay(), h = now.getHours(), m = now.getMinutes();
+  const mins = h * 60 + m;
+  if (d >= 1 && d <= 5 && mins >= 570 && mins < 960) return null;
+  let add = 0;
+  if (d === 0) add = 1;
+  else if (d === 6) add = 2;
+  else if (mins >= 960) add = d === 5 ? 3 : 1;
+  const t = new Date(now); t.setDate(t.getDate() + add); t.setHours(9, 30, 0, 0);
+  const diff = Math.max(0, t - now);
+  return { h: Math.floor(diff / 3600000), m: Math.floor((diff % 3600000) / 60000), s: Math.floor((diff % 60000) / 1000), date: t };
+}
+
 // ── PAIR ACCORDION ─────────────────────────────────────────────────────────────
 function PairAccordion({ pair, open, onToggle, onLogTrade, liveData }) {
   const isLive = !!liveData;
@@ -209,6 +231,13 @@ function PairAccordion({ pair, open, onToggle, onLogTrade, liveData }) {
   const hasSignal = !!result?.dir;
   const isUp = result?.dir === "UP";
   const sc = isUp ? C.green : hasSignal ? C.red : null;
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    const d = new Date();
+    const action = isUp ? `Short ${pair.lead} \u00b7 Long ${pair.target}` : `Long ${pair.lead} \u00b7 Short ${pair.target}`;
+    const text = `Quantile Signal \u2014 ${action} \u00b7 ${result.p.toFixed(1)}th percentile \u00b7 ${d.toISOString().slice(0,10)} ${d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false})} ET`;
+    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {});
+  };
 
   const handleLog = () => {
     if (!result?.dir) return;
@@ -259,16 +288,19 @@ function PairAccordion({ pair, open, onToggle, onLogTrade, liveData }) {
           </div>
           <span style={{ fontSize:11, color:C.dimmer }}>{pair.label}</span>
         </div>
-        <div style={{
-          width:28, height:28, borderRadius:"50%", flexShrink:0, marginLeft:12,
-          border:`1px solid ${open?C.accentBorder:C.border}`,
-          display:"flex", alignItems:"center", justifyContent:"center",
-          transition:"transform 0.22s ease, border-color 0.15s",
-          transform: open?"rotate(180deg)":"rotate(0deg)",
-        }}>
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-            <path d="M2 4.5L6 8.5L10 4.5" stroke={open?C.accent:C.dimmer} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0, marginLeft:12 }}>
+          {!open && <span style={{ fontSize:10, color:hasSignal?C.green:"rgba(255,255,255,0.22)", fontFamily:C.mono, fontWeight:600, transition:"color 0.25s" }}>{pair.stats.win}%</span>}
+          <div style={{
+            width:28, height:28, borderRadius:"50%",
+            border:`1px solid ${open?C.accentBorder:C.border}`,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            transition:"transform 0.22s ease, border-color 0.15s",
+            transform: open?"rotate(180deg)":"rotate(0deg)",
+          }}>
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <path d="M2 4.5L6 8.5L10 4.5" stroke={open?C.accent:C.dimmer} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
         </div>
       </button>
 
@@ -276,6 +308,11 @@ function PairAccordion({ pair, open, onToggle, onLogTrade, liveData }) {
         <div style={{ padding:"0 20px 20px", animation:"slideDown 0.22s ease" }}>
           <div style={{ height:1, background:C.border, marginBottom:20 }}/>
           <PctBar value={result?.p??null} th={pair.th} lo={pair.lo}/>
+          {hasSignal && result && (
+            <div style={{ fontSize:10, color:sc, marginTop:-12, marginBottom:12, fontFamily:C.mono, fontWeight:600 }}>
+              {isUp ? `${(result.p - pair.th).toFixed(1)}pts above threshold` : `${(pair.lo - result.p).toFixed(1)}pts below threshold`}
+            </div>
+          )}
 
           <div style={{
             borderRadius:10, padding:"16px 18px", textAlign:"center", marginBottom:16,
@@ -286,12 +323,18 @@ function PairAccordion({ pair, open, onToggle, onLogTrade, liveData }) {
           }}>
             {hasSignal ? (
               <>
-                <div style={{ fontSize:15, fontWeight:700, color:C.white, letterSpacing:"-0.02em" }}>
-                  {isUp?`Short ${pair.lead} · Long ${pair.target}`:`Long ${pair.lead} · Short ${pair.target}`}
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                  <div style={{ fontSize:15, fontWeight:700, color:C.white, letterSpacing:"-0.02em" }}>
+                    {isUp?`Short ${pair.lead} · Long ${pair.target}`:`Long ${pair.lead} · Short ${pair.target}`}
+                  </div>
+                  <button onClick={handleCopy} style={{ width:28, height:28, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", color:C.dimmer, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <CopyIcon size={13}/>
+                  </button>
                 </div>
                 <div style={{ fontSize:11, color:sc, letterSpacing:"0.02em", fontWeight:500 }}>
                   {result.p.toFixed(1)}th percentile · enter at open · exit at close
                 </div>
+                {copied && <div style={{ fontSize:10, color:C.accent, fontWeight:600, animation:"fadeUp 0.15s ease" }}>Copied</div>}
               </>
             ) : (
               <div style={{ fontSize:12, color:C.dimmer }}>
@@ -568,11 +611,16 @@ export default function Quantile() {
   const [logLoaded,setLogLoaded]           = useState(false);
   const [livePrices,setLivePrices]         = useState(null);
   const [livePriceTime,setLivePriceTime]   = useState(null);
+  const [liveLoadTs,setLiveLoadTs]         = useState(null);
+  const [onboarded,setOnboarded]           = useState(true);
 
   useEffect(()=>{ const t=setInterval(()=>setNow(new Date()),1000); return()=>clearInterval(t); },[]);
   useEffect(()=>{ loadLog().then(e=>{setLogEntries(e);setLogLoaded(true);}); },[]);
   useEffect(()=>{
-    const load=async()=>{ const d=await fetchLivePrices(); if(d){setLivePrices(d.tickers);setLivePriceTime(d.time);} };
+    try { window.storage.get("quantile-onboarded").then(r=>{ if(!r||r.value!=="true") setOnboarded(false); }).catch(()=>{}); } catch {}
+  },[]);
+  useEffect(()=>{
+    const load=async()=>{ const d=await fetchLivePrices(); if(d){setLivePrices(d.tickers);setLivePriceTime(d.time);setLiveLoadTs(Date.now());} };
     load(); const t=setInterval(load,5*60*1000); return()=>clearInterval(t);
   },[]);
 
@@ -588,6 +636,10 @@ export default function Quantile() {
   const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const pendingCount=logEntries.filter(e=>e.outcome==="pending").length;
   const TABS=[{key:"signals",label:"Signals"},{key:"log",label:"Log",badge:pendingCount>0?pendingCount:null},{key:"research",label:"Research"}];
+  const countdown=isOpen?null:getNextMarketOpen(now);
+  const signalCount=livePrices?PAIRS.reduce((c,p)=>{ const ld=getLiveData(p); if(!ld)return c; const r=calcSig(p,ld.lead_prev_close,ld.lead_open,ld.target_prev_close,ld.target_open); return c+(r.dir?1:0); },0):null;
+  const dismissOnboarding=()=>{ setOnboarded(true); try { window.storage.set("quantile-onboarded","true"); } catch {} };
+  const ageMin=liveLoadTs?Math.floor((now-liveLoadTs)/60000):null;
 
   return (
     <div style={{ minHeight:"100vh", background:C.bg, color:C.white, fontFamily:C.font, maxWidth:430, margin:"0 auto", position:"relative", overflowX:"hidden" }}>
@@ -618,6 +670,7 @@ export default function Quantile() {
           <div style={{ display:"flex",alignItems:"center",gap:6 }}>
             <div style={{ width:6,height:6,borderRadius:"50%",background:isOpen?C.green:"rgba(255,255,255,0.15)",boxShadow:isOpen?`0 0 8px ${C.green}60`:"none",animation:isOpen?"pulse 2s infinite":"none" }}/>
             <span style={{ fontSize:10,fontWeight:600,color:isOpen?C.green:C.dimmer,letterSpacing:"0.08em" }}>{isOpen?"OPEN":"CLOSED"}</span>
+            {!isOpen&&countdown&&<span style={{ fontSize:10,color:C.dimmer,fontFamily:C.mono }}>{countdown.h}h {pad(countdown.m)}m</span>}
           </div>
           <span style={{ fontSize:10,color:"rgba(255,255,255,0.15)",fontFamily:C.mono }}>{DAYS[day]} {pad(h)}:{pad(m)}</span>
         </div>
@@ -639,9 +692,35 @@ export default function Quantile() {
           <div style={{ marginBottom:8 }}>
             <h1 style={{ fontSize:20,fontWeight:700,letterSpacing:"-0.03em",marginBottom:4,color:C.white }}>Today's Signals</h1>
             <p style={{ fontSize:12,color:C.dimmer }}>
-              {livePriceTime?`Prices auto-loaded · ${livePriceTime} ET`:isOpen?"Market open — enter prices to generate signals":"Market closed — opens 9:30 AM ET weekdays"}
+              {livePriceTime?`Prices auto-loaded \u00b7 ${livePriceTime} ET${ageMin!==null?` \u00b7 ${ageMin<1?"just now":`${ageMin}m ago`}`:""}`
+                :isOpen?"Market open \u2014 enter prices to generate signals":"Market closed \u2014 opens 9:30 AM ET weekdays"}
             </p>
           </div>
+
+          {!onboarded&&(
+            <div style={{ background:C.accentDim, border:`1px solid ${C.accentBorder}`, borderRadius:14, padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+              <p style={{ fontSize:12, color:C.dim, lineHeight:1.5, flex:1 }}>Enter yesterday's close and today's open for each pair. A signal fires when the shock hits the threshold.</p>
+              <button onClick={dismissOnboarding} style={{ background:C.accent, border:"none", borderRadius:8, padding:"8px 14px", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" }}>Got it</button>
+            </div>
+          )}
+
+          {!isOpen&&!livePrices&&countdown&&(
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:14, padding:20, textAlign:"center" }}>
+              <div style={{ fontSize:10, color:C.dimmer, letterSpacing:"0.10em", fontWeight:600, marginBottom:12 }}>MARKET CLOSED</div>
+              <div style={{ fontSize:24, fontWeight:700, color:C.white, fontFamily:C.mono, letterSpacing:"-0.03em", marginBottom:6 }}>{countdown.h}h {pad(countdown.m)}m {pad(countdown.s)}s</div>
+              <div style={{ fontSize:11, color:C.dimmer }}>Opens {DAYS[countdown.date.getDay()]} 9:30 AM ET</div>
+              <div style={{ fontSize:10, color:C.dimmest, marginTop:8, fontFamily:C.mono }}>{DAYS[day]} {pad(h)}:{pad(m)} ET</div>
+            </div>
+          )}
+
+          {signalCount!==null&&(
+            <div style={{ height:36, display:"flex", alignItems:"center", paddingLeft:4, borderBottom:`1px solid ${C.border}`, background:C.surface, borderRadius:0 }}>
+              <span style={{ fontSize:11, fontWeight:600, letterSpacing:"0.06em", color:signalCount>0?C.green:C.dimmer }}>
+                {signalCount>0?`${signalCount} / ${PAIRS.length} SIGNALS ACTIVE`:"NO SIGNALS TODAY"}
+              </span>
+            </div>
+          )}
+
           {PAIRS.map((pair,i)=>(
             <div key={pair.lead} style={{ animation:`fadeUp 0.22s ease ${i*0.05}s both` }}>
               <PairAccordion pair={pair} open={openSet.has(i)} onToggle={()=>toggle(i)} onLogTrade={addLogEntry} liveData={getLiveData(pair)}/>
