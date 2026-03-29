@@ -54,7 +54,7 @@
     .hero-badge { display:inline-flex; align-items:center; gap:8px; background:var(--ad); border:1px solid var(--ab); border-radius:20px; padding:5px 14px; font-size:10px; font-weight:700; letter-spacing:0.14em; color:var(--accent); margin-bottom:32px; animation:fadeUp 0.6s ease both; }
     .hero-badge-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); animation:pulse 2s infinite; }
     .hero-h1 { font-size:clamp(52px,8.5vw,96px); font-weight:900; line-height:0.92; letter-spacing:-0.05em; margin-bottom:28px; animation:fadeUp 0.6s ease 0.08s both; }
-    .hero-h1 .line2 { display:block; color:rgba(255,255,255,0.55); }
+    .hero-h1 .line2 { display:block; color:var(--accent); }
     .hero-sub { font-size:clamp(15px,1.8vw,18px); color:var(--dim); line-height:1.65; max-width:480px; margin:0 auto 40px; font-weight:400; animation:fadeUp 0.6s ease 0.14s both; }
     .hero-btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; animation:fadeUp 0.6s ease 0.20s both; margin-bottom:56px; }
     .hero-chart { animation:fadeUp 0.8s ease 0.30s both; }
@@ -96,7 +96,7 @@
     .tbl-row.highlight { background:rgba(59,130,246,0.05); border-color:var(--ab); }
     .tbl-pair { font-size:15px; font-weight:700; letter-spacing:-0.02em; }
     .tbl-pair small { display:block; font-size:10px; color:var(--dimmer); font-weight:400; margin-top:2px; }
-    .tbl-val { font-family:var(--mono); font-size:13px; font-weight:500; color:var(--dim); }
+    .tbl-val { font-family:var(--font); font-size:13px; font-weight:500; color:var(--dim); }
     .tbl-val.g { color:var(--green); font-weight:700; }
     .tbl-val.b { color:var(--accent); font-weight:700; }
     .tbl-val.w { color:var(--white); font-weight:700; }
@@ -111,11 +111,15 @@
     .glass-body { font-size:13px; color:var(--dim); line-height:1.65; font-weight:400; }
 
     /* SOCIAL */
-    .social-section { text-align:center; padding:80px 40px; border-top:1px solid var(--border); }
-    .social-icons { display:flex; gap:28px; justify-content:center; margin-top:32px; }
-    .social-icon-link { display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); transition:border-color 0.2s,transform 0.2s,background 0.2s; }
-    .social-icon-link:hover { border-color:var(--ab); transform:translateY(-2px); background:var(--ad); }
-    .social-icon-link svg { width:22px; height:22px; }
+    .social-section { padding:80px 48px; max-width:1040px; margin:0 auto; }
+    .social-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .social-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px 24px; text-align:center; transition:border-color 0.2s,transform 0.2s; }
+    .social-card:hover { border-color:rgba(255,255,255,0.12); transform:translateY(-2px); }
+    .social-card-label { font-size:9px; font-weight:700; letter-spacing:0.14em; color:var(--dimmer); text-transform:uppercase; margin-bottom:20px; }
+    .social-card-icon { display:flex; justify-content:center; margin-bottom:16px; }
+    .social-card-icon svg { width:36px; height:36px; }
+    .social-card-handle { font-size:14px; font-weight:600; color:var(--white); margin-bottom:4px; }
+    .social-card-status { font-size:12px; color:var(--dimmer); font-weight:400; font-style:italic; }
 
     /* MATH DOES THE WORK */
     .math-section { text-align:center; padding:100px 40px; position:relative; }
@@ -389,31 +393,43 @@
 
   <!-- SOCIAL -->
   <div class="social-section">
-    <p class="eyebrow">Follow along</p>
-    <h2 class="section-h2" style="font-size:clamp(28px,4vw,40px)">See it in action.</h2>
-    <p class="section-p" style="margin:0 auto">Trade breakdowns, backtest walkthroughs, and live signal reviews.</p>
-    <div class="social-icons">
+    <div class="social-grid">
       <!-- YouTube -->
-      <a class="social-icon-link" href="https://youtube.com" target="_blank" aria-label="YouTube">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29.94 29.94 0 0 0 1 12a29.94 29.94 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29.94 29.94 0 0 0 23 12a29.94 29.94 0 0 0-.46-5.58z" fill="#3B82F6"/>
-          <polygon points="9.75,15.02 15.5,12 9.75,8.98" fill="#fff"/>
-        </svg>
-      </a>
+      <div class="social-card">
+        <div class="social-card-label">YouTube</div>
+        <div class="social-card-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29.94 29.94 0 0 0 1 12a29.94 29.94 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29.94 29.94 0 0 0 23 12a29.94 29.94 0 0 0-.46-5.58z" fill="#3B82F6"/>
+            <polygon points="9.75,15.02 15.5,12 9.75,8.98" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="social-card-handle">@donohuecapital</div>
+        <div class="social-card-status">Coming soon</div>
+      </div>
       <!-- TikTok -->
-      <a class="social-icon-link" href="https://tiktok.com" target="_blank" aria-label="TikTok">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M16.6 5.82A4.5 4.5 0 0 1 13.5 2h-3v13.5a2.5 2.5 0 1 1-2-2.45V9.5a6 6 0 1 0 5.5 6V9.34a8 8 0 0 0 4.5 1.36V7.2a4.5 4.5 0 0 1-1.9-1.38z" fill="#3B82F6"/>
-        </svg>
-      </a>
+      <div class="social-card">
+        <div class="social-card-label">TikTok</div>
+        <div class="social-card-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M16.6 5.82A4.5 4.5 0 0 1 13.5 2h-3v13.5a2.5 2.5 0 1 1-2-2.45V9.5a6 6 0 1 0 5.5 6V9.34a8 8 0 0 0 4.5 1.36V7.2a4.5 4.5 0 0 1-1.9-1.38z" fill="#3B82F6"/>
+          </svg>
+        </div>
+        <div class="social-card-handle">@donohuecapital</div>
+        <div class="social-card-status">Coming soon</div>
+      </div>
       <!-- Instagram -->
-      <a class="social-icon-link" href="https://instagram.com" target="_blank" aria-label="Instagram">
-        <svg viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="2" width="20" height="20" rx="5" stroke="#3B82F6" stroke-width="1.5" fill="none"/>
-          <circle cx="12" cy="12" r="5" stroke="#3B82F6" stroke-width="1.5" fill="none"/>
-          <circle cx="17.5" cy="6.5" r="1.2" fill="#3B82F6"/>
-        </svg>
-      </a>
+      <div class="social-card">
+        <div class="social-card-label">Instagram</div>
+        <div class="social-card-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="2" width="20" height="20" rx="5" stroke="#3B82F6" stroke-width="1.5" fill="none"/>
+            <circle cx="12" cy="12" r="5" stroke="#3B82F6" stroke-width="1.5" fill="none"/>
+            <circle cx="17.5" cy="6.5" r="1.2" fill="#3B82F6"/>
+          </svg>
+        </div>
+        <div class="social-card-handle">@donohue.capital</div>
+        <div class="social-card-status">Coming soon</div>
+      </div>
     </div>
   </div>
 
