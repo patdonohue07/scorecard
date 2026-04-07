@@ -39,7 +39,7 @@ async function closeAllPositions(headers) {
   return res.json();
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const key = process.env.ALPACA_API_KEY;
   const secret = process.env.ALPACA_SECRET_KEY;
   if (!key || !secret) return res.status(500).json({ error: "Missing Alpaca credentials" });
@@ -116,7 +116,7 @@ async function closeAllPositions(headers) {
   return res.json();
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const key = process.env.ALPACA_API_KEY;
   const secret = process.env.ALPACA_SECRET_KEY;
   if (!key || !secret) return res.status(500).json({ error: "Missing Alpaca credentials" });
