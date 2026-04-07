@@ -2063,6 +2063,25 @@ export default function Quantile() {
   const [liveLoadTs, setLiveLoadTs] = useState(null);
   const [onboarded, setOnboarded] = useState(true);
 
+  // ── NEW: button state ──────────────────────────────────────────────────────
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
+
+  const handleFetchPrices = async () => {
+    setFetching(true);
+    setFetchError(false);
+    const d = await fetchLivePrices();
+    if (d) {
+      setLivePrices(d.tickers);
+      setLivePriceTime(d.time);
+      setLiveLoadTs(Date.now());
+    } else {
+      setFetchError(true);
+    }
+    setFetching(false);
+  };
+  // ──────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
@@ -2083,19 +2102,8 @@ export default function Quantile() {
         .catch(() => {});
     } catch {}
   }, []);
-  useEffect(() => {
-    const load = async () => {
-      const d = await fetchLivePrices();
-      if (d) {
-        setLivePrices(d.tickers);
-        setLivePriceTime(d.time);
-        setLiveLoadTs(Date.now());
-      }
-    };
-    load();
-    const t = setInterval(load, 5 * 60 * 1000);
-    return () => clearInterval(t);
-  }, []);
+
+  // ── REMOVED: auto-fetch useEffect (was here) ──────────────────────────────
 
   const toggle = (i) =>
     setOpenSet((prev) => {
@@ -2239,7 +2247,8 @@ export default function Quantile() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {livePriceTime && <LiveBadge time={livePriceTime} />}
+          {/* LiveBadge only shows when market is open AND prices are loaded */}
+          {livePriceTime && isOpen && <LiveBadge time={livePriceTime} />}
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div
               style={{
@@ -2361,17 +2370,51 @@ export default function Quantile() {
                 </span>
               ))}
             </h1>
-            <p style={{ fontSize: 12, color: C.dimmer }}>
-              {livePriceTime
-                ? `Prices auto-loaded \u00b7 ${livePriceTime} ET${
-                    ageMin !== null
-                      ? ` \u00b7 ${ageMin < 1 ? "just now" : `${ageMin}m ago`}`
-                      : ""
-                  }`
-                : isOpen
-                ? "Market open \u2014 enter prices to generate signals"
-                : "Market closed \u2014 opens 9:30 AM ET weekdays"}
-            </p>
+
+            {/* ── AUTO-FILL BUTTON ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+              <button
+                onClick={handleFetchPrices}
+                disabled={!isOpen || fetching}
+                style={{
+                  background: isOpen && !fetching ? C.accentDim : "rgba(255,255,255,0.04)",
+                  border: `1px solid ${isOpen && !fetching ? C.accentBorder : C.border}`,
+                  borderRadius: 8,
+                  padding: "7px 14px",
+                  color: isOpen && !fetching ? C.accent : C.dimmer,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: isOpen && !fetching ? "pointer" : "default",
+                  letterSpacing: "0.06em",
+                  transition: "all 0.15s",
+                  opacity: fetching ? 0.6 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (isOpen && !fetching)
+                    e.currentTarget.style.background = "rgba(59,130,246,0.18)";
+                }}
+                onMouseLeave={(e) => {
+                  if (isOpen && !fetching)
+                    e.currentTarget.style.background = C.accentDim;
+                }}
+              >
+                {fetching ? "Loading..." : isOpen ? "Auto-Fill Prices" : "Market Closed"}
+              </button>
+
+              {livePriceTime && !fetching && (
+                <span style={{ fontSize: 11, color: C.dimmer }}>
+                  Last updated {livePriceTime} ET
+                  {ageMin !== null
+                    ? ` · ${ageMin < 1 ? "just now" : `${ageMin}m ago`}`
+                    : ""}
+                </span>
+              )}
+              {fetchError && (
+                <span style={{ fontSize: 11, color: C.red }}>
+                  Failed — tap to retry
+                </span>
+              )}
+            </div>
           </div>
 
           {!onboarded && (
