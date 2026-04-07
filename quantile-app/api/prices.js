@@ -58,7 +58,7 @@ async function getPrevClose(ticker, apiKey, secretKey) {
 }
 
 async function getTodayOpen(ticker, apiKey, secretKey) {
-  const url = `${BASE_URL}/stocks/${ticker}/bars/latest?feed=iex`;
+  const url = `${BASE_URL}/stocks/${ticker}/bars?timeframe=1Day&limit=1&feed=iex`;
 
   const res = await fetch(url, {
     headers: {
@@ -72,7 +72,7 @@ async function getTodayOpen(ticker, apiKey, secretKey) {
   }
 
   const data = await res.json();
-  return data.bar?.o ?? null;
+  const bars = data.bars; return bars && bars.length > 0 ? bars[bars.length - 1].o : null;
 }
 
 function isMarketOpen() {
