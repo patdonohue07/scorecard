@@ -739,7 +739,7 @@ function PairAccordion({ pair, open, onToggle, onLogTrade, liveData }) {
       outcome: "pending",
       pnl: null,
       notes: "",
-
+    });
   };
 
   return (
