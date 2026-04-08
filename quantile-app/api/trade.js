@@ -18,7 +18,7 @@ function calcSig(pair, lpc, lo, tpc, to) {
 
 async function getBar(ticker, headers) {
   const res = await fetch(
-    `https://data.sandbox.alpaca.markets/v2/stocks/${ticker}/bars/latest`,
+    `https://data.alpaca.markets/v2/stocks/${ticker}/bars/latest`,
     { headers }
   );
   const data = await res.json();
