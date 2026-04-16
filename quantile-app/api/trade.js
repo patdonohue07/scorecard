@@ -88,6 +88,9 @@ module.exports = async function handler(req, res) {
     });
   } catch (e) {}
 
+  // Wait for Alpaca to process the clear before placing new orders
+  await new Promise(r => setTimeout(r, 500));
+
   const prices = await getPrices(key, secret);
   const results = [];
   for (const pair of PAIRS) {
