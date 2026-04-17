@@ -689,7 +689,7 @@ function PairAccordion({ pair, open, onToggle, onLogTrade, liveData }) {
     if (!isLive) setV((p) => ({ ...p, [k]: val }));
   };
   const filled = +v.lpc && +v.lo && +v.tpc && +v.to;
-  const result = filled ? calcSig(pair, +v.lpc, +v.lo, +v.tpc, +v.to, livePrices?.sk?.[pair.lead+"/"+pair.target]) : null;
+  const result = filled ? calcSig(pair, +v.lpc, +v.lo, +v.tpc, +v.to, liveData?.sk) : null;
   const hasSignal = !!result?.dir;
   const isUp = result?.dir === "UP";
   const sc = isUp ? C.green : hasSignal ? C.red : null;
@@ -2073,7 +2073,7 @@ export default function Quantile() {
     setFetchError(false);
     const d = await fetchLivePrices();
     if (d) {
-      setLivePrices(d.tickers);
+      setLivePrices({ ...d.tickers, __sk: d.sk });
       setLivePriceTime(d.time);
       setLiveLoadTs(Date.now());
     } else {
@@ -2132,6 +2132,7 @@ export default function Quantile() {
       lead_open: lp.open,
       target_prev_close: tp.prev_close,
       target_open: tp.open,
+      sk: livePrices?.__sk?.[pair.lead+"/"+pair.target],
     };
   };
 
