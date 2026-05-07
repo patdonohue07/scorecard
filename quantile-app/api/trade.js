@@ -218,7 +218,6 @@ module.exports = async function handler(req, res) {
 
   const results = [];
   for (const pair of PAIRS) {
-    await new Promise(r => setTimeout(r, 500));
     try {
       const [leadBars, targetBars] = await Promise.all([
         getDailyBars(pair.lead,   SK_LOOKBACK_DAYS + 10, headers),
